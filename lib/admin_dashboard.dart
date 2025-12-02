@@ -36,13 +36,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
               style: const TextStyle(color: Colors.white), // White text
               decoration: InputDecoration(
                 filled: true,
-                fillColor: Colors.white.withOpacity(0.2), // Slightly transparent white box
+                fillColor: Colors.white.withValues(alpha: 0.2),
 
-                labelText: 'Search Registrant by Name or Phone',
-                labelStyle: const TextStyle(color: Colors.white), // White label
+                labelText: 'Search Registrant by Name or Phone number',
+                labelStyle: const TextStyle(color: Colors.white),
 
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.clear, color: Colors.white), // White icon
+                  icon: const Icon(Icons.clear, color: Colors.white),
                   onPressed: () {
                     searchController.clear();
                     setState(() => searchQuery = '');
@@ -56,40 +56,69 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   borderSide: BorderSide(color: Colors.white, width: 2),
                 ),
               ),
+
+              // 🔥 ADD THIS BACK
+              onChanged: (value) {
+                setState(() => searchQuery = value.toLowerCase());
+              },
             ),
+
 
             const SizedBox(height: 16),
 
             // 🔹 Registrants table with scroll
             Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('attendees')
-                    .orderBy('fullName')
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return const Center(child: Text('No registrants found.'));
-                  }
+              child: Card(
+                elevation: 6,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
 
-                  // Filter results by searchQuery
-                  final filteredDocs = snapshot.data!.docs.where((doc) {
-                    final name = doc['fullName']?.toString().toLowerCase() ?? '';
-                    final phone = doc['phoneNumber']?.toString().toLowerCase() ?? '';
-                    return name.contains(searchQuery) || phone.contains(searchQuery);
-                  }).toList();
+                  // 🔹 StreamBuilder INSIDE the static card
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('attendees')
+                        .orderBy('fullName')
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                  return Card(
-                    elevation: 6,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Scrollbar(
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            'No registrants found.',
+                            style: TextStyle(color: Colors.black54, fontSize: 18),
+                          ),
+                        );
+                      }
+
+                      // 🔹 Apply search filter
+                      final filteredDocs = snapshot.data!.docs.where((doc) {
+                        final name = doc['fullName']?.toString().toLowerCase() ?? '';
+                        final phone = doc['phoneNumber']?.toString().toLowerCase() ?? '';
+                        return name.contains(searchQuery) || phone.contains(searchQuery);
+                      }).toList();
+
+                      // 🔹 When search returns 0 results
+                      if (filteredDocs.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            'No records match your search.',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.black54,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      }
+
+                      // 🔹 Show data table
+                      return Scrollbar(
                         thumbVisibility: true,
                         child: SingleChildScrollView(
                           scrollDirection: Axis.vertical,
@@ -122,10 +151,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                  );
-                },
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
           ],
