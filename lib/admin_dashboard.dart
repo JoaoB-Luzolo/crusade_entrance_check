@@ -11,10 +11,17 @@ class AdminDashboard extends StatefulWidget {
 class _AdminDashboardState extends State<AdminDashboard> {
   String searchQuery = "";
   final TextEditingController searchController = TextEditingController();
+  
+  //Controllers for scrolling:
+  final ScrollController verticalController = ScrollController();
+  final ScrollController horizontalController = ScrollController();
 
+  //Disposing the Scrolling Controllers:
   @override
   void dispose() {
     searchController.dispose();
+    verticalController.dispose();
+    horizontalController.dispose();
     super.dispose();
   }
 
@@ -96,6 +103,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         );
                       }
 
+                      // 🔹 Total count BEFORE search filtering
+                      final totalCount = snapshot.data!.docs.length;
+
                       // 🔹 Apply search filter
                       final filteredDocs = snapshot.data!.docs.where((doc) {
                         final name = doc['fullName']?.toString().toLowerCase() ?? '';
@@ -105,55 +115,105 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
                       // 🔹 When search returns 0 results
                       if (filteredDocs.isEmpty) {
-                        return const Center(
-                          child: Text(
-                            'No records match your search.',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.black54,
-                              fontWeight: FontWeight.bold,
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Total Registrants: $totalCount',
+                              style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
                             ),
-                          ),
+                            const SizedBox(height: 20),
+                            const Text(
+                              'No records match your search.',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.black54,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         );
                       }
 
-                      // 🔹 Show data table
-                      return Scrollbar(
-                        thumbVisibility: true,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: DataTable(
-                              columnSpacing: 24,
-                              headingRowColor: WidgetStateProperty.all(Colors.blue.shade100),
-                              columns: const [
-                                DataColumn(label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold))),
-                                DataColumn(label: Text('Phone', style: TextStyle(fontWeight: FontWeight.bold))),
-                                DataColumn(label: Text('Email', style: TextStyle(fontWeight: FontWeight.bold))),
-                                DataColumn(label: Text('Country', style: TextStyle(fontWeight: FontWeight.bold))),
-                                DataColumn(label: Text('Age Group', style: TextStyle(fontWeight: FontWeight.bold))),
-                                DataColumn(label: Text('Attending As', style: TextStyle(fontWeight: FontWeight.bold))),
-                                DataColumn(label: Text('Church or Ministry', style: TextStyle(fontWeight: FontWeight.bold))),
+                      // 🔹 Show data table WITH record numbers
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                
+                                // 🔹 Total Count Display
+                                Text(
+                                  "Total Registrants: $totalCount",
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+
+                                Expanded(
+                                  child: Scrollbar(
+                                    thumbVisibility: true,
+                                    controller: verticalController,  // Attach controller
+                                    child: SingleChildScrollView(
+                                      controller: verticalController, // Attach controller
+                                      scrollDirection: Axis.vertical,
+                                      child: Scrollbar(
+                                        thumbVisibility: true,
+                                        controller: horizontalController, // Attach horizontal controller
+                                        notificationPredicate: (_) => false, // prevents conflict
+                                        child: SingleChildScrollView(
+                                          controller: horizontalController, // Attach controller
+                                          scrollDirection: Axis.horizontal,
+                                          child: DataTable(
+                                            columnSpacing: 24,
+                                            headingRowColor: WidgetStateProperty.all(Colors.blue.shade100),
+                                            columns: const [
+                                              DataColumn(label: Text('#', style: TextStyle(fontWeight: FontWeight.bold))),
+                                              DataColumn(label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold))),
+                                              DataColumn(label: Text('Phone', style: TextStyle(fontWeight: FontWeight.bold))),
+                                              DataColumn(label: Text('Email', style: TextStyle(fontWeight: FontWeight.bold))),
+                                              DataColumn(label: Text('Country', style: TextStyle(fontWeight: FontWeight.bold))),
+                                              DataColumn(label: Text('Age Group', style: TextStyle(fontWeight: FontWeight.bold))),
+                                              DataColumn(label: Text('Attending As', style: TextStyle(fontWeight: FontWeight.bold))),
+                                              DataColumn(label: Text('Church or Ministry', style: TextStyle(fontWeight: FontWeight.bold))),
+                                            ],
+                                            rows: List.generate(filteredDocs.length, (index) {
+                                              final doc = filteredDocs[index];
+                                              final data = doc.data() as Map<String, dynamic>;
+                                              return DataRow(
+                                                cells: [
+                                                  DataCell(Text("${index + 1}")), // record #
+                                                  DataCell(Text(data['fullName'] ?? '')),
+                                                  DataCell(Text(data['phoneNumber'] ?? '')),
+                                                  DataCell(Text(data['email'] ?? '')),
+                                                  DataCell(Text(data['residence'] ?? '')),
+                                                  DataCell(Text(data['ageGroup'] ?? '')),
+                                                  DataCell(Text(data['attendance.attendingAs'] ?? '')),
+                                                  DataCell(Text(data['church_or_ministry'] ?? '')),
+                                                ],
+                                              );
+                                            }),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ],
-                              rows: filteredDocs.map((doc) {
-                                final data = doc.data() as Map<String, dynamic>;
-                                return DataRow(cells: [
-                                  DataCell(Text(data['fullName'] ?? '')),
-                                  DataCell(Text(data['phoneNumber'] ?? '')),
-                                  DataCell(Text(data['email'] ?? '')),
-                                  DataCell(Text(data['residence'] ?? '')),
-                                  DataCell(Text(data['ageGroup'] ?? '')),
-                                  DataCell(Text(data['attendance.attendingAs'] ?? '')),
-                                  DataCell(Text(data['church_or_ministry'] ?? '')),
-                                ]);
-                              }).toList(),
                             ),
-                          ),
-                        ),
+                          )
+
+                        ],
                       );
                     },
                   ),
+
                 ),
               ),
             ),
