@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "782532393458",
+    "project_id": "crusade-entrance-check",
+    "storage_bucket": "crusade-entrance-check.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:782532393458:android:06824e12a3b054eaabd36b",
+        "android_client_info": {
+          "package_name": "com.example.crusade_entrance_check_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDySSgf4TF37EYY1AQjCyBlsNnLfCJ5ah0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
