@@ -188,38 +188,55 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Import CSV'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Import CSV'),
+        centerTitle: true,
+      ),
       body: Center(
-        child: Card(
-          margin: const EdgeInsets.symmetric(horizontal: 24),
-          elevation: 8,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: 500, // 👈 Prevents card from becoming too wide on desktop
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(200.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.upload_file, size: 70, color: Colors.blue,),
-                  label: const Text('Select CSV File', style: TextStyle(color: Colors.blueAccent),),
-                  onPressed: isImporting ? null : pickFile,
-                ),
-                const SizedBox(height: 24),
-                if (isImporting)
-                  const LinearProgressIndicator(minHeight: 8),
-                const SizedBox(height: 12),
-                Text(
-                  status,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 20),
-                ),
-              ],
+          child: Card(
+            elevation: 8,
+            margin: const EdgeInsets.symmetric(horizontal: 24),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton.icon(
+                    icon: const Icon(
+                      Icons.upload_file,
+                      size: 70,
+                      color: Colors.blue,
+                    ),
+                    label: const Text(
+                      'Select CSV File',
+                      style: TextStyle(color: Colors.blueAccent),
+                    ),
+                    onPressed: isImporting ? null : pickFile,
+                  ),
+                  const SizedBox(height: 24),
+                  if (isImporting)
+                    const LinearProgressIndicator(minHeight: 8),
+                  const SizedBox(height: 12),
+                  Text(
+                    status,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
+
+
 }
